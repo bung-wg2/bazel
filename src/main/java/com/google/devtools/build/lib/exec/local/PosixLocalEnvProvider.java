@@ -43,7 +43,7 @@ public final class PosixLocalEnvProvider implements LocalEnvProvider {
   public Map<String, String> rewriteLocalEnv(
       Map<String, String> env, BinTools binTools, String fallbackTmpDir) {
     ImmutableMap.Builder<String, String> result = ImmutableMap.builder();
-    result.putAll(Maps.filterKeys(env, k -> !k.equals("TMPDIR")));
+    result.putAll(Maps.filterKeys(env, k -> !k.equals("TMPDIR") && !k.equals("LD_LIBRARY_PATH")));
     String p = clientEnv.get("TMPDIR");
     if (Strings.isNullOrEmpty(p)) {
       // Do not use `fallbackTmpDir`, use `/tmp` instead. This way if the user didn't export TMPDIR
@@ -53,6 +53,14 @@ public final class PosixLocalEnvProvider implements LocalEnvProvider {
       p = "/tmp";
     }
     result.put("TMPDIR", p);
+
+    String ldPath = clientEnv.get("LD_LIBRARY_PATH");
+    if (ldPath == null) {
+      ldPath = env.get("LD_LIBRARY_PATH");
+    }
+    if (ldPath != null) {
+      result.put("LD_LIBRARY_PATH", ldPath);
+    }
     return result.build();
   }
 }
